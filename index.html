@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUKARATA PRO v2.5 - Hybrid Master Engine (Seed & Faceless Lockdown)</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d0b14">
+    <style>
+        :root {
+            --bg: #0d0b14;
+            --card: #16121e;
+            --text: #f0ebf5;
+            --pri: linear-gradient(135deg, #4b2c5e 0%, #2a1a36 100%);
+            --accent: #9d72b8; 
+            --border: rgba(157, 114, 184, 0.2);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --switch-on: #9d72b8;
+        }
+        body.light {
+            --bg: #f5f3f7;
+            --card: #ffffff;
+            --text: #2a1a36;
+            --border: #dcd0e5;
+            --input-bg: #f9f7fa;
+        }
+        body { 
+            margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); color: var(--text); transition: 0.3s;
+            overflow-x: hidden;
+        }
+        .m-logo-svg { width: 120px; height: 120px; filter: drop-shadow(0 0 15px rgba(157, 114, 184, 0.6)); margin-bottom: 10px; }
+        .mini-logo-svg { width: 40px; height: 40px; }
+        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--card); padding: 40px; border-radius: 30px; text-align: center; border: 2px solid var(--accent); box-shadow: 0 0 50px rgba(75, 44, 94, 0.5); width: 320px; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; display: none; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header-brand { display: flex; align-items: center; gap: 15px; }
+        .controls { display: flex; gap: 10px; }
+        .section { background: var(--card); padding: 25px; border-radius: 20px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        h2, h3 { color: var(--accent); margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
+        label { font-size: 11px; font-weight: bold; opacity: 0.7; display: block; margin-top: 15px; margin-bottom: 5px; }
+        select, input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 14px; outline: none; transition: 0.3s; box-sizing: border-box; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        button { background: var(--pri); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 14px; text-transform: uppercase; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        button:hover { transform: scale(1.02); filter: brightness(1.2); }
+        .btn-copy { background: #2a1a36; border: 1px solid var(--accent); }
+        pre { background: #050408; color: #d1b3e0; padding: 20px; border-radius: 15px; font-size: 12px; overflow-x: auto; border: 1px solid #2a1a36; margin-top: 15px; white-space: pre-wrap; line-height: 1.6; max-height: 500px; }
+        .char-card { border: 1px dashed var(--accent); padding: 20px; border-radius: 15px; margin-top: 15px; background: rgba(157,114,184,0.05); }
+        .theme-btn, .lang-btn { cursor: pointer; padding: 8px 15px; background: var(--accent); border-radius: 30px; font-weight: bold; font-size: 11px; color: #000; }
+        
+        .switch-container { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .packed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
+        .packed-grid select { margin-top: 2px; }
+        .security-badge { font-size: 9px; color: #ff4444; border: 1px solid #ff4444; padding: 2px 5px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+        .install-floating { position: fixed; bottom: 20px; right: 20px; width: auto; z-index: 999; display: none; }
+    </style>
+</head>
+<body class="dark">
+
+<svg style="display:none;">
+    <symbol id="mukarata-logo" viewBox="0 0 512 512">
+        <path fill="#4b2c5e" d="M112 160 L112 360 C112 440 256 480 256 480 C256 480 400 440 400 360 L400 160 L340 100 L300 160 L256 100 L212 160 L172 100 Z" />
+        <rect x="112" y="210" width="288" height="10" fill="white" />
+        <path fill="white" d="M175 410 L175 270 L220 270 L256 325 L292 270 L337 270 L337 410 L305 410 L305 320 L256 385 L207 320 L207 410 Z" />
+    </symbol>
+</svg>
+
+<div id="loginOverlay">
+    <div class="login-box">
+        <svg class="m-logo-svg"><use xlink:href="#mukarata-logo"></use></svg>
+        <h1 style="color:var(--accent); margin:10px 0 0 0;">MUKARATA PRO</h1>
+        <p style="font-size:10px; opacity:0.6; margin-bottom:25px;">AUTHORIZED BY MANX LOGIC ENGINE</p>
+        <div class="security-badge">FACELOCK v2.5 ENTERPRISE</div>
+        <input type="password" id="passInput" placeholder="Security Key..." style="text-align:center;">
+        <button id="accessBtn" onclick="loginKeApp()">ACCESS SYSTEM</button>
+    </div>
+</div>
+
+<div class="container" id="mainApp">
+    <div class="header">
+        <div class="header-brand">
+            <svg class="mini-logo-svg"><use xlink:href="#mukarata-logo"></use></svg>
+            <h2 id="appTitle" style="margin:0;">MUKARATA PRO <span style="font-size:12px; opacity:0.5;">v2.5</span></h2>
+        </div>
+        <div class="controls">
+            <div class="lang-btn" onclick="toggleLang()">🌐 <span id="langText">ID / EN</span></div>
+            <div class="theme-btn" onclick="toggleTheme()">🌓 <span id="themeText">MODE</span></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3 id="sec1Title">1. Konfigurasi Objek (Hybrid Support)</h3>
+        <div class="grid-2">
+            <div>
+                <label id="lblCount">Jumlah Objek (Maks 12):</label>
+                <select id="objCount" onchange="refreshUI()">
+                    <option value="1" selected>1 Objek</option>
+                    <option value="2">2 Objek</option>
+                    <option value="3">3 Objek</option>
+                    <option value="4">4 Objek</option>
+                </select>
+            </div>
+            <div>
+                 <label>Global Type Toggle:</label>
+                 <div class="grid-2">
+                     <button onclick="setAllTypes('human')" style="font-size:10px; padding:5px;">ALL HUMAN</button>
+                     <button onclick="setAllTypes('product')" style="font-size:10px; padding:5px;">ALL PRODUCT</button>
+                 </div>
+            </div>
+        </div>
+        <div id="objectForms"></div>
+    </div>
+
+    <div class="section">
+        <h3 id="sec2Title">2. Visual Engine & Auto-Grid</h3>
+        <div class="grid-3">
+            <div>
+                <label id="lblLayout">Kategori Layout:</label>
+                <select id="vLayoutCat" onchange="updateGridInfo()">
+                    <option value="portrait" selected>PORTRAIT</option>
+                    <option value="square">SQUARE</option>
+                    <option value="landscape">LANDSCAPE</option>
+                </select>
+            </div>
+            <div>
+                <label id="lblGrid">Grid Effect:</label>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox" id="gridSwitch" onchange="updateGridInfo()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label id="lblGridStat">Status:</label>
+                <input type="text" id="gridDisplay" readonly value="Single Frame">
+            </div>
+        </div>
+        <div class="grid-3" style="margin-top:10px;">
+            <div><label id="lblRatio">Ratio:</label><select id="vRatio" onchange="updateGridInfo()"><option value="9:16">9:16</option><option value="1:1">1:1</option></select></div>
+            <div><label id="lblStyle">Gaya Visual:</label><select id="vStyle"></select></div>
+            <div><label id="lblEnv">Lingkungan:</label><select id="vEnv"></select></div>
+        </div>
+        <div class="grid-3">
+            <div><label id="lblAtmos">Atmosfer:</label><select id="vAtmos"></select></div>
+            <div><label id="lblCamera">Kamera:</label><select id="vCamera"></select></div>
+            <div>
+                <label style="color: #00ffcc;">Faceless Engine:</label>
+                <select id="facelessDropdown"><option value="none">none</option><option value="robotic">Robotic</option><option value="feminine">Feminine</option></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <label>TARGET ENGINE:</label>
+        <select id="targetPlatform" style="margin-bottom:15px;">
+            <option value="raw">📦 JSON Mentah</option>
+            <option value="google">✨ Google ImageFX</option>
+            <option value="grok">🦾 Grok AI</option>
+            <option value="mj">🎨 Midjourney</option>
+        </select>
+        <button id="btnGen" onclick="executeRenderBridge()">🚀 GENERATE MASTER</button>
+        <button id="btnCopy" class="btn-copy" onclick="copyToClipboard()">📋 SALIN</button>
+        <pre id="resultOutput">// Sistem Siap...</pre>
+    </div>
+</div>
+
+<button id="installBtn" class="install-floating">⬇ Install App</button>
+
+<script src="js/database.js"></script>
+
+<script>
+    /* LOGIKA JAVASCRIPT SEKARANG BERSIH DARI DATA 
+       Variabel DB dipanggil dari js/database.js
+    */
+
+    let currLang = 'id';
+
+    const LANG = {
+        id: { title: "MUKARATA PRO v2.5", btnGen: "🚀 GENERATE MASTER", btnCopy: "📋 SALIN" },
+        en: { title: "MUKARATA PRO v2.5", btnGen: "🚀 GENERATE MASTER", btnCopy: "📋 COPY" }
+    };
+
+    // --- AUTH ENGINE ---
+    async function loginKeApp() {
+        const inputPass = document.getElementById('passInput').value;
+        if (!inputPass) return alert("Security Key Required!");
+        
+        // Simulasi verifikasi atau panggil API kamu
+        try {
+            const response = await fetch('/api/check-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: inputPass })
+            });
+            const hasil = await response.json();
+            if (hasil.success) {
+                localStorage.setItem('mukarata_session', 'active');
+                showApp();
+            } else { alert("Akses Ditolak."); }
+        } catch (err) { 
+            // Fallback manual jika API belum siap
+            if(inputPass === "MANX2026") { showApp(); } 
+        }
+    }
+
+    function showApp() {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        initApp(); 
+    }
+
+    // --- INITIALIZE APP ---
+    function initApp() {
+        // Panggil data dari DB (file database.js)
+        fillSelect('vStyle', DB.styles); 
+        fillSelect('vCamera', DB.cameras); 
+        fillSelect('vAtmos', DB.atmos); 
+        fillSelect('vEnv', DB.envs); 
+        refreshUI(); 
+    }
+
+    function fillSelect(id, arr) { 
+        let el = document.getElementById(id); 
+        if(!el || !arr) return; 
+        el.innerHTML = arr.map(i => `<option value="${i}">${i}</option>`).join(''); 
+    }
+
+    function refreshUI() {
+        const count = document.getElementById('objCount').value;
+        const container = document.getElementById('objectForms');
+        container.innerHTML = "";
+        for(let i=1; i<=count; i++) {
+            container.insertAdjacentHTML('beforeend', `<div class="char-card"><b>OBJEK ${i}</b> - Dynamic UI Loaded</div>`);
+        }
+    }
+
+    // --- GENERATOR & BRIDGE ---
+    function executeRenderBridge() {
+        // Logika generate kamu tetap di sini
+        document.getElementById('resultOutput').innerText = "Generating result based on Database.js...";
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('resultOutput').innerText;
+        navigator.clipboard.writeText(text).then(() => alert("Copied!"));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('mukarata_session') === 'active') showApp();
+    });
+</script>
+</body>
+</html>
