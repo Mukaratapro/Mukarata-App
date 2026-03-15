@@ -1,31 +1,53 @@
-const Redis = require('ioredis');
+import Redis from "ioredis";
 
-// Kita pecah manual agar tidak error credentials
-const redis = new Redis({
-  host: "redis-15667.c11.us-east-1-2.ec2.cloud.redislabs.com",
-  port: 15667,
-  password: "ISIPASSWORDMU_DISINI", // Ganti dengan password asli Anda
-  retryStrategy: (times) => Math.min(times * 50, 2000)
-});
+const redis = new Redis(process.env.REDIS_URL);
+
+function generateToken() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let token = "MKRT-";
+  for (let i = 0; i < 12; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return token;
+}
 
 export default async function handler(req, res) {
-  if (req.query.key !== 'MANXYOUD9191') return res.status(401).send('Kunci Salah');
+
+  const { key } = req.query;
+
+  if (key !== "MANXYOUD9191") {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
 
   try {
-    const pipeline = redis.pipeline();
-    
+
+    let tokens = [];
+
     for (let i = 0; i < 1000; i++) {
-      const id = Math.random().toString(36).substring(2, 9).toUpperCase();
-      pipeline.set(`MKRT-${id}`, JSON.stringify({ 
-        app: "mukarata", 
-        status: "active", 
-        deviceId: null 
+
+      const token = generateToken();
+
+      await redis.set(token, JSON.stringify({
+        email: null,
+        status: "unused",
+        createdAt: new Date().toISOString()
       }));
+
+      tokens.push(token);
     }
 
-    await pipeline.exec();
-    return res.status(200).send("<h1>MANTEP! 1000 Token MKRT Masuk.</h1>");
-  } catch (e) {
-    return res.status(500).send("Gagal total: " + e.message);
+    return res.status(200).json({
+      success: true,
+      total: tokens.length
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: err.message
+    });
   }
+
 }
