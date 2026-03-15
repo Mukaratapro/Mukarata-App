@@ -1,32 +1,21 @@
-// api/generate-mkrt.js
 const Redis = require('ioredis');
-const redis = new Redis(`redis://:${process.env.REDIS_PASSWORD}@${process.env.REDIS_URL}:${process.env.REDIS_PORT}`);
+
+// Gunakan satu variabel REDIS_URL yang sudah berisi password:
+// format: redis://:password@host:port
+const redis = new Redis(process.env.REDIS_URL);
 
 export default async function handler(req, res) {
-  // Samakan dengan URL yang Anda buat tadi
-  const { key } = req.query;
-  if (key !== 'MANXYOUD9191') {
-    return res.status(401).json({ error: 'Kunci Salah!' });
-  }
+  if (req.query.key !== 'MANXYOUD9191') return res.status(401).send('Kunci Salah');
 
   try {
     const pipeline = redis.pipeline();
-    // Kita buat 1000 token cadangan
-    for (let i = 1; i <= 1000; i++) {
-      const randomID = Math.random().toString(36).substring(2, 10).toUpperCase();
-      const tokenKey = `MKRT-${randomID}`;
-
-      pipeline.set(tokenKey, JSON.stringify({
-        app: "mukarata",
-        status: "active",
-        deviceId: null,
-        createdAt: new Date().toISOString()
-      }));
+    for (let i = 0; i < 1000; i++) {
+      const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+      pipeline.set(`MKRT-${id}`, JSON.stringify({ app: "mukarata", status: "active", deviceId: null }));
     }
-
     await pipeline.exec();
-    return res.status(200).send("<h1>Sukses! 1000 Token MKRT telah ditambahkan ke Redis Cloud.</h1>");
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(200).send("<h1>Sukses! 1000 Token MKRT Aktif.</h1>");
+  } catch (e) {
+    return res.status(500).send("Gagal: " + e.message);
   }
 }
